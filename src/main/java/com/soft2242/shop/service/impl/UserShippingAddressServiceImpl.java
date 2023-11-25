@@ -11,7 +11,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.soft2242.shop.vo.AddressVO;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,39 +54,31 @@ public class UserShippingAddressServiceImpl extends ServiceImpl<UserShippingAddr
     updateById(address);
     return address.getId();
   }
+
   @Override
-  public List<AddressVO> getAllShippingAddresses() {
-    List<UserShippingAddress> userAddresses = baseMapper.selectList(null);
-
-    List<AddressVO> addressVOList = new ArrayList<>();
-
-    for (UserShippingAddress userAddress : userAddresses) {
-      AddressVO addressVO = AddressConvert.INSTANCE.convertToAddressVO(userAddress);
-      addressVOList.add(addressVO);
-    }
-
-    return addressVOList;
+  public List<AddressVO> getList(Integer userId) {
+    LambdaQueryWrapper<UserShippingAddress> wrapper = new LambdaQueryWrapper<>();
+    wrapper.eq(UserShippingAddress::getUserId, userId);
+//        根据是否为默认地址和创建时间倒序排列
+    wrapper.orderByDesc(UserShippingAddress::getIsDefault);
+    wrapper.orderByDesc(UserShippingAddress::getCreateTime);
+    List<UserShippingAddress> list = baseMapper.selectList(wrapper);
+    List<AddressVO> results = AddressConvert.INSTANCE.convertToAddressVOList(list);
+    return results;
   }
   @Override
-  public String deleteShippingAddress(Integer addressId) {
-    UserShippingAddress userAddress = baseMapper.selectById(addressId);
-
-    if (userAddress == null) {
-      throw new RuntimeException("Address not found");
+  public AddressVO getAddressInfo(Integer id) {
+    UserShippingAddress userShippingAddress = baseMapper.selectById(id);
+    if (userShippingAddress == null) {
+      throw new ServerException("地址不存在");
     }
-
-    baseMapper.deleteById(addressId);
-    return "删除成功";
-  }
-
-  @Override
-  public AddressVO detailShippingAddress(Integer addressId) {
-    UserShippingAddress userAddress = baseMapper.selectById(addressId);
-    if (userAddress==null){
-      throw new ServerException("该地址为空，请重新输入地址id");
-    }
-    AddressVO addressVO = AddressConvert.INSTANCE.convertToAddressVO(userAddress);
+    AddressVO addressVO = AddressConvert.INSTANCE.convertToAddressVO(userShippingAddress);
     return addressVO;
   }
+  @Override
+  public void removeShippingAddress(Integer id) {
+    removeById(id);
+  }
+
 
 }

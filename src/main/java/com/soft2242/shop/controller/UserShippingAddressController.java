@@ -1,8 +1,8 @@
 package com.soft2242.shop.controller;
 
-
 import com.soft2242.shop.common.exception.ServerException;
 import com.soft2242.shop.common.result.Result;
+import com.soft2242.shop.entity.UserShippingAddress;
 import com.soft2242.shop.service.UserShippingAddressService;
 import com.soft2242.shop.vo.AddressVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,6 +16,14 @@ import java.util.List;
 
 import static com.soft2242.shop.common.utils.ObtainUserIdUtils.getUserId;
 
+/**
+ * <p>
+ *  前端控制器
+ * </p>
+ *
+ * @author ycshang
+ * @since 2023-11-10
+ */
 @Tag(name = "地址管理")
 @RestController
 @RequestMapping("member")
@@ -41,24 +49,49 @@ public class UserShippingAddressController {
     Integer addressId = userShippingAddressService.editShippingAddress(addressVO);
     return Result.ok(addressId);
   }
-  @GetMapping("address")
+  /*   @GetMapping("address")
+     @Operation(summary = "收货地址列表")
+     public Result<List<AddressVO>> getAddress() {
+         List<AddressVO> list = userShippingAddressService.getAllShippingAddresses();
+         return Result.ok(list);
+     }
+     @DeleteMapping("address")
+     @Operation(summary = "删除收货地址")
+     public Result<String> deleteAddress(@RequestParam Integer addressId){
+         String s = userShippingAddressService.deleteShippingAddress(addressId);
+         return Result.ok(s);
+
+     }
+     @GetMapping("address/detail")
+     @Operation(summary = "收货地址详情")
+     public Result<AddressVO> detailAddress(@RequestParam Integer addressId){
+         AddressVO addressVO = userShippingAddressService.detailShippingAddress(addressId);
+         return Result.ok(addressVO);
+     }*/
   @Operation(summary = "收货地址列表")
-  public Result<List<AddressVO>> getAddress() {
-    List<AddressVO> list = userShippingAddressService.getAllShippingAddresses();
+  @GetMapping("address")
+  public Result<List<AddressVO>> getList(HttpServletRequest request) {
+    Integer userId = getUserId(request);
+    List<AddressVO> list = userShippingAddressService.getList(userId);
     return Result.ok(list);
-  }
-  @DeleteMapping("address")
-  @Operation(summary = "删除收货地址")
-  public Result<String> deleteAddress(@RequestParam Integer addressId){
-    String s = userShippingAddressService.deleteShippingAddress(addressId);
-    return Result.ok(s);
 
   }
-  @GetMapping("address/detail")
   @Operation(summary = "收货地址详情")
-  public Result<AddressVO> detailAddress(@RequestParam Integer addressId){
-    AddressVO addressVO = userShippingAddressService.detailShippingAddress(addressId);
-    return Result.ok(addressVO);
+  @GetMapping("address/detail")
+  public Result<AddressVO> getAddressDetail(@RequestParam Integer id, HttpServletRequest request) {
+    if (id == null) {
+      throw new ServerException("请求参数不能为空");
+    }
+    AddressVO addressInfo = userShippingAddressService.getAddressInfo(id);
+    return Result.ok(addressInfo);
   }
-
+  @Operation(summary = "删除收货地址")
+  @DeleteMapping("address")
+  public Result removeAddress(@RequestParam Integer id, HttpServletRequest request) {
+    if (id == null) {
+      throw new ServerException("请求参数不能为空");
+    }
+    userShippingAddressService.removeShippingAddress(id);
+    return Result.ok();
+  }
 }
